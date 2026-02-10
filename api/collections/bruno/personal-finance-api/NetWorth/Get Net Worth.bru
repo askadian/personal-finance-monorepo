@@ -1,0 +1,43 @@
+meta {
+  name: Get Net Worth
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/{{api_version}}/networth
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~startDate: {{start_date}}
+  ~endDate: {{end_date}}
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Retrieve net worth calculation and history for the authenticated user.
+  
+  Query Parameters (Optional):
+  - startDate: Start date for net worth history (YYYY-MM-DD)
+  - endDate: End date for net worth history (YYYY-MM-DD)
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("should have current net worth", function() {
+    expect(res.body.current).to.be.an('object');
+    expect(res.body.current.netWorth).to.be.a('number');
+  });
+  
+  test("should have history", function() {
+    expect(res.body.history).to.be.an('array');
+  });
+}

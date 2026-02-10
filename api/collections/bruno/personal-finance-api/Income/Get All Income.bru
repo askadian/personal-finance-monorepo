@@ -1,0 +1,47 @@
+meta {
+  name: Get All Income
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/{{api_version}}/income?startDate={{start_date}}&endDate={{end_date}}&limit={{limit}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  startDate: {{start_date}}
+  endDate: {{end_date}}
+  limit: {{limit}}
+  ~source: salary
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Retrieve all income records for the authenticated user.
+  
+  Query Parameters:
+  - startDate: Filter income from this date (YYYY-MM-DD)
+  - endDate: Filter income until this date (YYYY-MM-DD)
+  - source: Filter by income source (salary, bonus, investment, freelance, other)
+  - limit: Maximum number of income records to return (1-100, default: 50)
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("should return array of income records", function() {
+    expect(res.body.data).to.be.an('array');
+  });
+  
+  test("should have summary", function() {
+    expect(res.body.summary).to.be.an('object');
+    expect(res.body.summary.totalIncome).to.be.a('number');
+  });
+}

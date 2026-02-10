@@ -1,0 +1,47 @@
+meta {
+  name: Get All Expenses
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/{{api_version}}/expenses?startDate={{start_date}}&endDate={{end_date}}&limit={{limit}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  startDate: {{start_date}}
+  endDate: {{end_date}}
+  limit: {{limit}}
+  ~category: groceries
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Retrieve all expense records for the authenticated user.
+  
+  Query Parameters:
+  - startDate: Filter expenses from this date (YYYY-MM-DD)
+  - endDate: Filter expenses until this date (YYYY-MM-DD)
+  - category: Filter by expense category (groceries, utilities, entertainment, etc.)
+  - limit: Maximum number of expense records to return (1-100, default: 50)
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("should return array of expenses", function() {
+    expect(res.body.data).to.be.an('array');
+  });
+  
+  test("should have summary", function() {
+    expect(res.body.summary).to.be.an('object');
+    expect(res.body.summary.totalExpenses).to.be.a('number');
+  });
+}

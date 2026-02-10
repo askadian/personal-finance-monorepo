@@ -1,0 +1,38 @@
+meta {
+  name: Get Uploaded Files
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/{{api_version}}/files
+  body: none
+  auth: inherit
+}
+
+params:query {
+  ~fileType: bank_statement
+  ~status: processed
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Retrieve list of uploaded financial documents.
+  
+  Query Parameters (Optional):
+  - fileType: Filter by file type (bank_statement, pay_stub, etc.)
+  - status: Filter by processing status (uploaded, processing, processed, failed)
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("should return array of files", function() {
+    expect(res.body.data).to.be.an('array');
+  });
+}

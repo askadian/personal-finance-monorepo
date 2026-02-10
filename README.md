@@ -22,6 +22,7 @@ The application follows a modern serverless architecture:
 - `/frontend`: React application (JavaScript).
 - `/backend`: Python Lambda functions for parsing and API handling.
 - `/infra`: AWS CDK (Python) for infrastructure as code.
+- `/api`: OpenAPI specifications and API collections (Postman & Bruno).
 - `/.github/workflows`: GitHub Actions for automated CI/CD.
 
 ## Tech Stack
@@ -32,6 +33,16 @@ The application follows a modern serverless architecture:
 - **Database:** Amazon DynamoDB.
 - **Infrastructure:** AWS CDK.
 - **CI/CD:** GitHub Actions.
+
+## API Documentation
+
+The REST API specifications and collections are available in the `/api` directory:
+
+- **OpenAPI 3.0 Specification**: Complete API definition in OpenAPI format
+- **Postman Collection**: Importable collection with mock data and parameterized environments
+- **Bruno Collection**: Git-friendly collection with mock examples
+
+See [API Documentation](./api/README.md) for detailed usage instructions.
 
 ## Getting Started
 

@@ -1,0 +1,48 @@
+meta {
+  name: Get All Transactions
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/{{api_version}}/transactions?startDate={{start_date}}&endDate={{end_date}}&limit={{limit}}
+  body: none
+  auth: inherit
+}
+
+params:query {
+  startDate: {{start_date}}
+  endDate: {{end_date}}
+  limit: {{limit}}
+  ~category: groceries
+  ~offset: 0
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Retrieve all financial transactions for the authenticated user with optional filtering.
+  
+  Query Parameters:
+  - startDate: Filter transactions from this date (YYYY-MM-DD)
+  - endDate: Filter transactions until this date (YYYY-MM-DD)
+  - category: Filter by transaction category (groceries, utilities, entertainment, etc.)
+  - limit: Maximum number of transactions to return (1-100, default: 50)
+  - offset: Number of transactions to skip for pagination (default: 0)
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("should return array of transactions", function() {
+    expect(res.body.data).to.be.an('array');
+  });
+  
+  test("should have pagination info", function() {
+    expect(res.body.pagination).to.be.an('object');
+  });
+}
