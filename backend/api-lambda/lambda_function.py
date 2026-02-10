@@ -385,7 +385,7 @@ def get_files(event: Dict[str, Any]) -> Dict[str, Any]:
             "fileSize": 245678,
             "uploadDate": "2024-01-15T10:30:00Z",
             "status": "processed",
-            "s3Key": "users/user_123/statements/statement_2024_01.pdf"
+            "s3Key": f"users/{user_id}/statements/statement_2024_01.pdf"
         },
         {
             "id": "file_002",
@@ -395,7 +395,7 @@ def get_files(event: Dict[str, Any]) -> Dict[str, Any]:
             "fileSize": 128456,
             "uploadDate": "2024-01-31T15:45:00Z",
             "status": "processed",
-            "s3Key": "users/user_123/paystubs/paystub_2024_01.pdf"
+            "s3Key": f"users/{user_id}/paystubs/paystub_2024_01.pdf"
         }
     ]
     
