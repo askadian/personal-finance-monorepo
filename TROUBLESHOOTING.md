@@ -36,10 +36,7 @@ Run the following command to fix the permissions on your npm cache folder:
 sudo chown -R $(whoami) ~/.npm
 ```
 
-Or on macOS, if you know your user ID and group ID:
-```bash
-sudo chown -R 501:20 ~/.npm
-```
+**Note:** The `$(whoami)` command automatically uses your current user. This is the safest approach that works on all systems.
 
 Then try installing again:
 ```bash
