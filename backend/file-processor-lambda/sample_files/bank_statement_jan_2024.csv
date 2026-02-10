@@ -1,0 +1,8 @@
+date,description,amount,type,category
+2024-01-15,Grocery Store - Whole Foods,125.50,expense,groceries
+2024-01-16,Gas Station - Shell,45.00,expense,transportation
+2024-01-20,Monthly Salary,5000.00,income,salary
+2024-01-22,Electric Bill Payment,-89.99,expense,utilities
+2024-01-25,Amazon Purchase,234.56,expense,shopping
+2024-01-28,Restaurant - Italian,78.90,expense,dining
+2024-01-30,Freelance Payment,1200.00,income,freelance
