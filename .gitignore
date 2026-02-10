@@ -31,11 +31,11 @@ lerna-debug.log*
 *.swo
 *~
 
-# CDK
-*.js
-*.d.ts
-node_modules
-cdk.out
+# CDK (only in infra directory)
+infra/**/*.js
+infra/**/*.d.ts
+infra/node_modules
+infra/cdk.out
 .cdk.staging
 
 # Python
