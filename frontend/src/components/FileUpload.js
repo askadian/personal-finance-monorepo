@@ -2,6 +2,14 @@ import React, { useState, useRef } from 'react';
 import { X, Upload, File } from 'lucide-react';
 import './FileUpload.css';
 
+// Supported file MIME types for upload validation
+const SUPPORTED_FILE_TYPES = [
+  'application/pdf',
+  'text/csv',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+];
+
 const FileUpload = ({ onClose }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileType, setFileType] = useState('');
@@ -24,8 +32,7 @@ const FileUpload = ({ onClose }) => {
     const file = e.target.files[0];
     if (file) {
       // Validate file type
-      const validTypes = ['application/pdf', 'text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
-      if (!validTypes.includes(file.type)) {
+      if (!SUPPORTED_FILE_TYPES.includes(file.type)) {
         alert('Please select a valid file type (PDF, CSV, or Excel)');
         return;
       }

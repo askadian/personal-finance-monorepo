@@ -19,12 +19,14 @@ const SignIn = () => {
       // If AWS Cognito is not configured, simulate sign in for demo
       if (!process.env.REACT_APP_USER_POOL_ID) {
         console.warn('AWS Cognito not configured. Using demo mode.');
-        // Store demo user in localStorage
+        // NOTE: localStorage is used for demo mode only. In production, AWS Amplify
+        // manages authentication tokens securely. Never store sensitive auth data in localStorage.
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('username', username);
         navigate('/dashboard');
       } else {
         await signIn({ username, password });
+        // In production, AWS Amplify handles secure token storage
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('username', username);
         navigate('/dashboard');

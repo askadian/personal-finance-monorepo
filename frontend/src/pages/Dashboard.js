@@ -20,9 +20,10 @@ const Dashboard = () => {
   const handleLogout = async () => {
     try {
       if (process.env.REACT_APP_USER_POOL_ID) {
+        // Sign out from AWS Cognito - this clears all Amplify session data
         await signOut();
       }
-      // Always clear local storage for both demo and real mode
+      // Clear demo mode localStorage (also clears in production as a safeguard)
       localStorage.removeItem('isAuthenticated');
       localStorage.removeItem('username');
       navigate('/');

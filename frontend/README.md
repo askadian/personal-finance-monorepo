@@ -15,7 +15,7 @@ React-based frontend application for the Personal Finance Tracker.
 
 ## Tech Stack
 
-- React 18
+- React 19
 - React Router DOM
 - AWS Amplify
 - Bootstrap 5
