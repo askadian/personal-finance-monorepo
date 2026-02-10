@@ -1,0 +1,28 @@
+meta {
+  name: Personal Finance API
+  type: collection
+  version: 1.0.0
+}
+
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+docs {
+  Complete API collection for Personal Finance Tracker application.
+  This collection provides endpoints to fetch financial data from DynamoDB
+  including transactions, income, expenses, and net worth information.
+  
+  ## Authentication
+  All endpoints require AWS Cognito JWT token authentication.
+  Set the access_token variable in your environment.
+  
+  ## Environments
+  - Mock: For testing with mock data
+  - Staging: For staging environment testing
+  - Production: For production use
+}

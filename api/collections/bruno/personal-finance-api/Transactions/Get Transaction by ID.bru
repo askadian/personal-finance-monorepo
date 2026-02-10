@@ -1,0 +1,33 @@
+meta {
+  name: Get Transaction by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/{{api_version}}/transactions/{{transaction_id}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Retrieve details of a specific transaction by ID.
+  
+  Path Parameters:
+  - transaction_id: Unique transaction identifier (e.g., txn_001)
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("should return transaction object", function() {
+    expect(res.body).to.be.an('object');
+    expect(res.body.id).to.exist;
+  });
+}

@@ -1,0 +1,44 @@
+meta {
+  name: Request Upload URL
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/{{api_version}}/files/upload-url
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "fileName": "bank_statement_jan_2024.pdf",
+    "fileType": "bank_statement",
+    "contentType": "application/pdf"
+  }
+}
+
+docs {
+  Get a presigned S3 URL for uploading financial documents.
+  
+  Request Body:
+  - fileName: Name of the file to upload
+  - fileType: Type of financial document (bank_statement, pay_stub, 1099-int, etc.)
+  - contentType: MIME type of the file
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("should return upload URL", function() {
+    expect(res.body.uploadUrl).to.be.a('string');
+    expect(res.body.fileId).to.exist;
+  });
+}

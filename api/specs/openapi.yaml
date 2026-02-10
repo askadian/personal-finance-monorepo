@@ -1,0 +1,1067 @@
+openapi: 3.0.3
+info:
+  title: Personal Finance API
+  description: |
+    REST API for Personal Finance Tracker application.
+    This API provides endpoints to fetch financial data from DynamoDB including transactions, 
+    income, expenses, and net worth information for authenticated users.
+  version: 1.0.0
+  contact:
+    name: Personal Finance Team
+    email: support@personal-finance.example.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: https://api.personal-finance.example.com/v1
+    description: Production API
+  - url: https://api-staging.personal-finance.example.com/v1
+    description: Staging API
+  - url: http://localhost:3000/v1
+    description: Local Development API
+
+tags:
+  - name: Transactions
+    description: Operations related to financial transactions
+  - name: Income
+    description: Operations related to income tracking
+  - name: Expenses
+    description: Operations related to expense tracking
+  - name: Net Worth
+    description: Operations related to net worth calculation
+  - name: Files
+    description: Operations related to file upload and management
+
+security:
+  - CognitoAuth: []
+
+paths:
+  /transactions:
+    get:
+      tags:
+        - Transactions
+      summary: Get all transactions
+      description: Retrieve all financial transactions for the authenticated user
+      operationId: getTransactions
+      parameters:
+        - name: startDate
+          in: query
+          description: Filter transactions from this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+        - name: endDate
+          in: query
+          description: Filter transactions until this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+        - name: category
+          in: query
+          description: Filter by transaction category
+          required: false
+          schema:
+            type: string
+            enum: [groceries, utilities, entertainment, healthcare, transportation, dining, shopping, other]
+        - name: limit
+          in: query
+          description: Maximum number of transactions to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          description: Number of transactions to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+              examples:
+                success:
+                  value:
+                    data:
+                      - id: "txn_001"
+                        userId: "user_123"
+                        date: "2024-01-15"
+                        amount: -45.67
+                        description: "Grocery Store Purchase"
+                        category: "groceries"
+                        merchant: "Whole Foods"
+                        type: "debit"
+                        accountId: "acc_001"
+                        createdAt: "2024-01-16T10:30:00Z"
+                        updatedAt: "2024-01-16T10:30:00Z"
+                      - id: "txn_002"
+                        userId: "user_123"
+                        date: "2024-01-14"
+                        amount: -120.00
+                        description: "Electric Bill"
+                        category: "utilities"
+                        merchant: "Power Company"
+                        type: "debit"
+                        accountId: "acc_001"
+                        createdAt: "2024-01-15T08:15:00Z"
+                        updatedAt: "2024-01-15T08:15:00Z"
+                    pagination:
+                      limit: 50
+                      offset: 0
+                      total: 2
+                      hasMore: false
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /transactions/{transactionId}:
+    get:
+      tags:
+        - Transactions
+      summary: Get a specific transaction
+      description: Retrieve details of a specific transaction by ID
+      operationId: getTransactionById
+      parameters:
+        - name: transactionId
+          in: path
+          description: Unique transaction identifier
+          required: true
+          schema:
+            type: string
+            example: "txn_001"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+              examples:
+                success:
+                  value:
+                    id: "txn_001"
+                    userId: "user_123"
+                    date: "2024-01-15"
+                    amount: -45.67
+                    description: "Grocery Store Purchase"
+                    category: "groceries"
+                    merchant: "Whole Foods"
+                    type: "debit"
+                    accountId: "acc_001"
+                    createdAt: "2024-01-16T10:30:00Z"
+                    updatedAt: "2024-01-16T10:30:00Z"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /income:
+    get:
+      tags:
+        - Income
+      summary: Get all income records
+      description: Retrieve all income records for the authenticated user
+      operationId: getIncome
+      parameters:
+        - name: startDate
+          in: query
+          description: Filter income from this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+        - name: endDate
+          in: query
+          description: Filter income until this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+        - name: source
+          in: query
+          description: Filter by income source
+          required: false
+          schema:
+            type: string
+            enum: [salary, bonus, investment, freelance, other]
+        - name: limit
+          in: query
+          description: Maximum number of income records to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Income'
+                  summary:
+                    type: object
+                    properties:
+                      totalIncome:
+                        type: number
+                        format: double
+                        description: Total income for the period
+                      averageMonthly:
+                        type: number
+                        format: double
+                        description: Average monthly income
+              examples:
+                success:
+                  value:
+                    data:
+                      - id: "inc_001"
+                        userId: "user_123"
+                        date: "2024-01-31"
+                        amount: 5000.00
+                        description: "Monthly Salary"
+                        source: "salary"
+                        employer: "Tech Corp"
+                        taxWithheld: 1200.00
+                        createdAt: "2024-02-01T00:00:00Z"
+                        updatedAt: "2024-02-01T00:00:00Z"
+                      - id: "inc_002"
+                        userId: "user_123"
+                        date: "2024-01-15"
+                        amount: 500.00
+                        description: "Freelance Project Payment"
+                        source: "freelance"
+                        employer: "Client ABC"
+                        taxWithheld: 0.00
+                        createdAt: "2024-01-16T00:00:00Z"
+                        updatedAt: "2024-01-16T00:00:00Z"
+                    summary:
+                      totalIncome: 5500.00
+                      averageMonthly: 5500.00
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /income/summary:
+    get:
+      tags:
+        - Income
+      summary: Get income summary
+      description: Get aggregated income statistics for the authenticated user
+      operationId: getIncomeSummary
+      parameters:
+        - name: period
+          in: query
+          description: Time period for the summary
+          required: false
+          schema:
+            type: string
+            enum: [month, quarter, year, all]
+            default: year
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  period:
+                    type: string
+                  totalIncome:
+                    type: number
+                    format: double
+                  averageIncome:
+                    type: number
+                    format: double
+                  bySource:
+                    type: object
+                    additionalProperties:
+                      type: number
+                      format: double
+              examples:
+                success:
+                  value:
+                    period: "year"
+                    totalIncome: 66000.00
+                    averageIncome: 5500.00
+                    bySource:
+                      salary: 60000.00
+                      freelance: 6000.00
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /expenses:
+    get:
+      tags:
+        - Expenses
+      summary: Get all expenses
+      description: Retrieve all expense records for the authenticated user
+      operationId: getExpenses
+      parameters:
+        - name: startDate
+          in: query
+          description: Filter expenses from this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+        - name: endDate
+          in: query
+          description: Filter expenses until this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+        - name: category
+          in: query
+          description: Filter by expense category
+          required: false
+          schema:
+            type: string
+            enum: [groceries, utilities, entertainment, healthcare, transportation, dining, shopping, rent, mortgage, insurance, other]
+        - name: limit
+          in: query
+          description: Maximum number of expense records to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Expense'
+                  summary:
+                    type: object
+                    properties:
+                      totalExpenses:
+                        type: number
+                        format: double
+                        description: Total expenses for the period
+                      averageMonthly:
+                        type: number
+                        format: double
+                        description: Average monthly expenses
+              examples:
+                success:
+                  value:
+                    data:
+                      - id: "exp_001"
+                        userId: "user_123"
+                        date: "2024-01-15"
+                        amount: 1500.00
+                        description: "Monthly Rent"
+                        category: "rent"
+                        merchant: "Property Management LLC"
+                        isRecurring: true
+                        createdAt: "2024-01-16T00:00:00Z"
+                        updatedAt: "2024-01-16T00:00:00Z"
+                      - id: "exp_002"
+                        userId: "user_123"
+                        date: "2024-01-20"
+                        amount: 85.50
+                        description: "Weekly Groceries"
+                        category: "groceries"
+                        merchant: "Supermarket"
+                        isRecurring: false
+                        createdAt: "2024-01-21T00:00:00Z"
+                        updatedAt: "2024-01-21T00:00:00Z"
+                    summary:
+                      totalExpenses: 1585.50
+                      averageMonthly: 1585.50
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /expenses/summary:
+    get:
+      tags:
+        - Expenses
+      summary: Get expense summary
+      description: Get aggregated expense statistics for the authenticated user
+      operationId: getExpenseSummary
+      parameters:
+        - name: period
+          in: query
+          description: Time period for the summary
+          required: false
+          schema:
+            type: string
+            enum: [month, quarter, year, all]
+            default: year
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  period:
+                    type: string
+                  totalExpenses:
+                    type: number
+                    format: double
+                  averageExpenses:
+                    type: number
+                    format: double
+                  byCategory:
+                    type: object
+                    additionalProperties:
+                      type: number
+                      format: double
+              examples:
+                success:
+                  value:
+                    period: "year"
+                    totalExpenses: 42000.00
+                    averageExpenses: 3500.00
+                    byCategory:
+                      rent: 18000.00
+                      groceries: 7200.00
+                      utilities: 3600.00
+                      transportation: 4800.00
+                      entertainment: 2400.00
+                      dining: 3000.00
+                      other: 3000.00
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /networth:
+    get:
+      tags:
+        - Net Worth
+      summary: Get net worth data
+      description: Retrieve net worth calculation and history for the authenticated user
+      operationId: getNetWorth
+      parameters:
+        - name: startDate
+          in: query
+          description: Start date for net worth history (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-01-01"
+        - name: endDate
+          in: query
+          description: End date for net worth history (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2024-12-31"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current:
+                    $ref: '#/components/schemas/NetWorth'
+                  history:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NetWorthSnapshot'
+              examples:
+                success:
+                  value:
+                    current:
+                      userId: "user_123"
+                      totalAssets: 150000.00
+                      totalLiabilities: 80000.00
+                      netWorth: 70000.00
+                      lastUpdated: "2024-02-01T00:00:00Z"
+                      breakdown:
+                        assets:
+                          cash: 15000.00
+                          investments: 50000.00
+                          realEstate: 250000.00
+                          other: 0.00
+                        liabilities:
+                          mortgage: 200000.00
+                          creditCard: 5000.00
+                          studentLoans: 25000.00
+                          other: 0.00
+                    history:
+                      - date: "2024-01-01"
+                        netWorth: 65000.00
+                      - date: "2024-02-01"
+                        netWorth: 70000.00
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /files/upload-url:
+    post:
+      tags:
+        - Files
+      summary: Request presigned URL for file upload
+      description: Get a presigned S3 URL for uploading financial documents
+      operationId: getUploadUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fileName
+                - fileType
+              properties:
+                fileName:
+                  type: string
+                  description: Name of the file to upload
+                  example: "bank_statement_jan_2024.pdf"
+                fileType:
+                  type: string
+                  description: Type of financial document
+                  enum: [bank_statement, pay_stub, 1099-int, 1099-div, w-2, credit_card_statement, investment_statement, other]
+                  example: "bank_statement"
+                contentType:
+                  type: string
+                  description: MIME type of the file
+                  example: "application/pdf"
+      responses:
+        '200':
+          description: Presigned URL generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uploadUrl:
+                    type: string
+                    description: Presigned S3 URL for file upload
+                  fileId:
+                    type: string
+                    description: Unique identifier for the uploaded file
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: Expiration time of the presigned URL
+              examples:
+                success:
+                  value:
+                    uploadUrl: "https://s3.amazonaws.com/bucket/file?presigned-params"
+                    fileId: "file_001"
+                    expiresAt: "2024-02-10T08:33:26Z"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /files:
+    get:
+      tags:
+        - Files
+      summary: Get uploaded files
+      description: Retrieve list of uploaded financial documents
+      operationId: getFiles
+      parameters:
+        - name: fileType
+          in: query
+          description: Filter by file type
+          required: false
+          schema:
+            type: string
+            enum: [bank_statement, pay_stub, 1099-int, 1099-div, w-2, credit_card_statement, investment_statement, other]
+        - name: status
+          in: query
+          description: Filter by processing status
+          required: false
+          schema:
+            type: string
+            enum: [uploaded, processing, processed, failed]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FileMetadata'
+              examples:
+                success:
+                  value:
+                    data:
+                      - id: "file_001"
+                        userId: "user_123"
+                        fileName: "bank_statement_jan_2024.pdf"
+                        fileType: "bank_statement"
+                        status: "processed"
+                        uploadedAt: "2024-01-16T10:30:00Z"
+                        processedAt: "2024-01-16T10:32:00Z"
+                        transactionsExtracted: 45
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    CognitoAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        AWS Cognito authentication using JWT bearer tokens.
+        Include the token in the Authorization header as: Bearer <token>
+
+  schemas:
+    Transaction:
+      type: object
+      required:
+        - id
+        - userId
+        - date
+        - amount
+        - description
+        - type
+      properties:
+        id:
+          type: string
+          description: Unique transaction identifier
+          example: "txn_001"
+        userId:
+          type: string
+          description: User ID who owns this transaction
+          example: "user_123"
+        date:
+          type: string
+          format: date
+          description: Transaction date
+          example: "2024-01-15"
+        amount:
+          type: number
+          format: double
+          description: Transaction amount (negative for debits, positive for credits)
+          example: -45.67
+        description:
+          type: string
+          description: Transaction description
+          example: "Grocery Store Purchase"
+        category:
+          type: string
+          enum: [groceries, utilities, entertainment, healthcare, transportation, dining, shopping, other]
+          description: Transaction category
+          example: "groceries"
+        merchant:
+          type: string
+          description: Merchant name
+          example: "Whole Foods"
+        type:
+          type: string
+          enum: [debit, credit]
+          description: Transaction type
+          example: "debit"
+        accountId:
+          type: string
+          description: Account identifier
+          example: "acc_001"
+        createdAt:
+          type: string
+          format: date-time
+          description: Record creation timestamp
+          example: "2024-01-16T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Record last update timestamp
+          example: "2024-01-16T10:30:00Z"
+
+    Income:
+      type: object
+      required:
+        - id
+        - userId
+        - date
+        - amount
+        - description
+        - source
+      properties:
+        id:
+          type: string
+          description: Unique income record identifier
+          example: "inc_001"
+        userId:
+          type: string
+          description: User ID who owns this income record
+          example: "user_123"
+        date:
+          type: string
+          format: date
+          description: Income date
+          example: "2024-01-31"
+        amount:
+          type: number
+          format: double
+          description: Income amount
+          example: 5000.00
+        description:
+          type: string
+          description: Income description
+          example: "Monthly Salary"
+        source:
+          type: string
+          enum: [salary, bonus, investment, freelance, other]
+          description: Income source type
+          example: "salary"
+        employer:
+          type: string
+          description: Employer or income source name
+          example: "Tech Corp"
+        taxWithheld:
+          type: number
+          format: double
+          description: Tax amount withheld
+          example: 1200.00
+        createdAt:
+          type: string
+          format: date-time
+          description: Record creation timestamp
+          example: "2024-02-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Record last update timestamp
+          example: "2024-02-01T00:00:00Z"
+
+    Expense:
+      type: object
+      required:
+        - id
+        - userId
+        - date
+        - amount
+        - description
+        - category
+      properties:
+        id:
+          type: string
+          description: Unique expense record identifier
+          example: "exp_001"
+        userId:
+          type: string
+          description: User ID who owns this expense record
+          example: "user_123"
+        date:
+          type: string
+          format: date
+          description: Expense date
+          example: "2024-01-15"
+        amount:
+          type: number
+          format: double
+          description: Expense amount
+          example: 1500.00
+        description:
+          type: string
+          description: Expense description
+          example: "Monthly Rent"
+        category:
+          type: string
+          enum: [groceries, utilities, entertainment, healthcare, transportation, dining, shopping, rent, mortgage, insurance, other]
+          description: Expense category
+          example: "rent"
+        merchant:
+          type: string
+          description: Merchant name
+          example: "Property Management LLC"
+        isRecurring:
+          type: boolean
+          description: Whether this is a recurring expense
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Record creation timestamp
+          example: "2024-01-16T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Record last update timestamp
+          example: "2024-01-16T00:00:00Z"
+
+    NetWorth:
+      type: object
+      required:
+        - userId
+        - totalAssets
+        - totalLiabilities
+        - netWorth
+        - lastUpdated
+      properties:
+        userId:
+          type: string
+          description: User ID
+          example: "user_123"
+        totalAssets:
+          type: number
+          format: double
+          description: Total assets value
+          example: 150000.00
+        totalLiabilities:
+          type: number
+          format: double
+          description: Total liabilities value
+          example: 80000.00
+        netWorth:
+          type: number
+          format: double
+          description: Net worth (assets - liabilities)
+          example: 70000.00
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Last calculation timestamp
+          example: "2024-02-01T00:00:00Z"
+        breakdown:
+          type: object
+          properties:
+            assets:
+              type: object
+              properties:
+                cash:
+                  type: number
+                  format: double
+                investments:
+                  type: number
+                  format: double
+                realEstate:
+                  type: number
+                  format: double
+                other:
+                  type: number
+                  format: double
+            liabilities:
+              type: object
+              properties:
+                mortgage:
+                  type: number
+                  format: double
+                creditCard:
+                  type: number
+                  format: double
+                studentLoans:
+                  type: number
+                  format: double
+                other:
+                  type: number
+                  format: double
+
+    NetWorthSnapshot:
+      type: object
+      required:
+        - date
+        - netWorth
+      properties:
+        date:
+          type: string
+          format: date
+          description: Snapshot date
+          example: "2024-01-01"
+        netWorth:
+          type: number
+          format: double
+          description: Net worth at this date
+          example: 65000.00
+
+    FileMetadata:
+      type: object
+      required:
+        - id
+        - userId
+        - fileName
+        - fileType
+        - status
+        - uploadedAt
+      properties:
+        id:
+          type: string
+          description: Unique file identifier
+          example: "file_001"
+        userId:
+          type: string
+          description: User ID who uploaded the file
+          example: "user_123"
+        fileName:
+          type: string
+          description: Original file name
+          example: "bank_statement_jan_2024.pdf"
+        fileType:
+          type: string
+          enum: [bank_statement, pay_stub, 1099-int, 1099-div, w-2, credit_card_statement, investment_statement, other]
+          description: Type of financial document
+          example: "bank_statement"
+        status:
+          type: string
+          enum: [uploaded, processing, processed, failed]
+          description: File processing status
+          example: "processed"
+        uploadedAt:
+          type: string
+          format: date-time
+          description: Upload timestamp
+          example: "2024-01-16T10:30:00Z"
+        processedAt:
+          type: string
+          format: date-time
+          description: Processing completion timestamp
+          example: "2024-01-16T10:32:00Z"
+        transactionsExtracted:
+          type: integer
+          description: Number of transactions extracted from the file
+          example: 45
+        errorMessage:
+          type: string
+          description: Error message if processing failed
+          example: "Unable to parse PDF"
+
+    Pagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+          description: Number of items per page
+          example: 50
+        offset:
+          type: integer
+          description: Number of items skipped
+          example: 0
+        total:
+          type: integer
+          description: Total number of items
+          example: 2
+        hasMore:
+          type: boolean
+          description: Whether there are more items
+          example: false
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "UNAUTHORIZED"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Authentication required"
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+
+  responses:
+    UnauthorizedError:
+      description: Authentication is required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            unauthorized:
+              value:
+                error: "UNAUTHORIZED"
+                message: "Authentication required. Please provide a valid JWT token."
+
+    BadRequestError:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            badRequest:
+              value:
+                error: "BAD_REQUEST"
+                message: "Invalid request parameters"
+                details:
+                  field: "fileName"
+                  issue: "File name is required"
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            notFound:
+              value:
+                error: "NOT_FOUND"
+                message: "The requested resource was not found"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            serverError:
+              value:
+                error: "INTERNAL_SERVER_ERROR"
+                message: "An unexpected error occurred. Please try again later."

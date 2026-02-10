@@ -1,0 +1,38 @@
+meta {
+  name: Get Income Summary
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/{{api_version}}/income/summary?period=year
+  body: none
+  auth: inherit
+}
+
+params:query {
+  period: year
+}
+
+headers {
+  Accept: application/json
+}
+
+docs {
+  Get aggregated income statistics for the authenticated user.
+  
+  Query Parameters:
+  - period: Time period for the summary (month, quarter, year, all)
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("should have summary data", function() {
+    expect(res.body.period).to.exist;
+    expect(res.body.totalIncome).to.be.a('number');
+    expect(res.body.bySource).to.be.an('object');
+  });
+}
