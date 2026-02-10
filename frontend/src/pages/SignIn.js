@@ -11,7 +11,7 @@ function SignIn() {
   const handleSignIn = (e) => {
     e.preventDefault();
     // Placeholder authentication logic
-    console.log('Sign in attempt with:', { email, password });
+    console.log('Sign in attempt with email:', email);
     // Simulate successful login and redirect to dashboard
     navigate('/dashboard');
   };
