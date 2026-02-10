@@ -45,6 +45,8 @@ This is the React-based frontend for the Personal Finance Tracker application.
    npm install
    ```
 
+   **Note:** If you encounter permission errors or other installation issues, see the [Troubleshooting Guide](../TROUBLESHOOTING.md).
+
 ### Running the Development Server
 
 Start the development server:
@@ -112,6 +114,15 @@ These features are designed to be integrated with AWS services in future updates
 2. **Navigate Tabs**: Click on any tab (Transactions, Income, Expenses, Net Worth) to view different sections
 3. **Upload Files**: Click the "Upload File" button, select a file, choose the file type, and click "Upload"
 4. **Logout**: Click the "Logout" button to return to the sign-in page
+
+## Troubleshooting
+
+If you encounter issues during installation or running the application, please refer to the [Troubleshooting Guide](../TROUBLESHOOTING.md) for common solutions including:
+
+- npm permission errors (EACCES)
+- react-scripts: command not found
+- npm cache issues
+- Node.js version requirements
 
 ## Future Enhancements
 

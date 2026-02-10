@@ -35,4 +35,20 @@ The application follows a modern serverless architecture:
 
 ## Getting Started
 
+### Quick Start
+
+To run the frontend application locally:
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+The application will open at [http://localhost:3000](http://localhost:3000).
+
+**Having trouble?** See the [Troubleshooting Guide](./TROUBLESHOOTING.md) for solutions to common setup issues.
+
+### Full Deployment
+
 Refer to [DEPLOYMENT.md](./DEPLOYMENT.md) for step-by-step instructions on how to deploy this stack to your AWS account.
