@@ -1,0 +1,233 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'File Upload Processor Lambda - Processes financial documents from S3 uploads'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Deployment environment
+  
+  S3BucketName:
+    Type: String
+    Description: S3 bucket name for file uploads (will be created if doesn't exist)
+    Default: personal-finance-uploads
+  
+  DynamoDBTableName:
+    Type: String
+    Description: DynamoDB table name for transactions
+    Default: Transactions
+
+Resources:
+  # S3 Bucket for file uploads
+  FileUploadBucket:
+    Type: AWS::S3::Bucket
+    DependsOn: FileProcessorLambdaInvokePermission
+    Properties:
+      BucketName: !Sub '${S3BucketName}-${Environment}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt FileProcessorLambda.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: users/
+                  - Name: suffix
+                    Value: .csv
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt FileProcessorLambda.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: users/
+                  - Name: suffix
+                    Value: .pdf
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+            AllowedHeaders:
+              - '*'
+            MaxAge: 3000
+
+  # DynamoDB Table for Transactions
+  TransactionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${DynamoDBTableName}-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: transaction_id
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: transaction_id
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: date-index
+          KeySchema:
+            - AttributeName: user_id
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: PersonalFinance
+
+  # IAM Role for Lambda
+  FileProcessorLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'file-processor-lambda-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: S3ReadAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                Resource:
+                  - !Sub '${FileUploadBucket.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt FileUploadBucket.Arn
+        - PolicyName: DynamoDBWriteAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:BatchWriteItem
+                Resource:
+                  - !GetAtt TransactionsTable.Arn
+
+  # Lambda Function
+  FileProcessorLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'file-processor-${Environment}'
+      Runtime: python3.12
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt FileProcessorLambdaRole.Arn
+      Timeout: 300
+      MemorySize: 512
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+          DYNAMODB_TABLE_NAME: !Ref TransactionsTable
+          LOG_LEVEL: INFO
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+              return {'statusCode': 200, 'body': 'Placeholder - deploy actual code'}
+      Description: Processes uploaded financial documents and writes to DynamoDB
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Application
+          Value: PersonalFinance
+
+  # Permission for S3 to invoke Lambda
+  FileProcessorLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref FileProcessorLambda
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub 'arn:aws:s3:::${S3BucketName}-${Environment}'
+
+  # CloudWatch Log Group
+  FileProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/file-processor-${Environment}'
+      RetentionInDays: 30
+
+  # CloudWatch Alarms
+  FileProcessorErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub 'file-processor-errors-${Environment}'
+      AlarmDescription: Alert on Lambda errors
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref FileProcessorLambda
+      TreatMissingData: notBreaching
+
+Outputs:
+  FileUploadBucketName:
+    Description: S3 bucket name for file uploads
+    Value: !Ref FileUploadBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-BucketName'
+  
+  FileProcessorLambdaArn:
+    Description: ARN of the file processor Lambda function
+    Value: !GetAtt FileProcessorLambda.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaArn'
+  
+  TransactionsTableName:
+    Description: DynamoDB table name for transactions
+    Value: !Ref TransactionsTable
+    Export:
+      Name: !Sub '${AWS::StackName}-TableName'
+  
+  TransactionsTableArn:
+    Description: ARN of the Transactions DynamoDB table
+    Value: !GetAtt TransactionsTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-TableArn'

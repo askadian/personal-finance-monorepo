@@ -1,0 +1,5 @@
+date,description,amount,type,category
+2024-01-31,Base Salary,4500.00,income,salary
+2024-01-31,Performance Bonus,500.00,income,bonus
+2024-01-31,401k Contribution,-450.00,expense,retirement
+2024-01-31,Health Insurance,-200.00,expense,insurance
