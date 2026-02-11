@@ -139,7 +139,7 @@ This guide provides step-by-step instructions to manually create and seed the Dy
   "type": "expense",
   "category": "utilities",
   "source_file": "utility_bill_jan_2024.pdf",
-  "document_type": "bank_statement",
+  "document_type": "utility_bill",
   "created_at": "2024-01-20T15:30:00Z"
 }
 ```
@@ -232,7 +232,7 @@ aws dynamodb put-item \
         "type": {"S": "expense"},
         "category": {"S": "utilities"},
         "source_file": {"S": "utility_bill_jan_2024.pdf"},
-        "document_type": {"S": "bank_statement"},
+        "document_type": {"S": "utility_bill"},
         "created_at": {"S": "2024-01-20T15:30:00Z"}
     }'
 
