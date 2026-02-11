@@ -23,6 +23,7 @@ The application follows a modern serverless architecture:
 - `/backend`: Python Lambda functions for parsing and API handling.
 - `/infra`: AWS CDK (Python) for infrastructure as code.
 - `/api`: OpenAPI specifications and API collections (Postman & Bruno).
+- `/security`: AWS security resources documentation (Cognito User Pools).
 - `/.github/workflows`: GitHub Actions for automated CI/CD.
 
 ## Tech Stack
@@ -43,6 +44,17 @@ The REST API specifications and collections are available in the `/api` director
 - **Bruno Collection**: Git-friendly collection with mock examples
 
 See [API Documentation](./api/README.md) for detailed usage instructions.
+
+## Security Documentation
+
+AWS security resources documentation is available in the `/security` directory:
+
+- **Cognito User Pools**: Complete setup guide for authentication and user management
+  - Manual setup instructions with step-by-step guides
+  - Automation templates for IaC (CloudFormation, Terraform - coming soon)
+  - Integration with API Gateway and frontend
+
+See [Security Documentation](./security/cognito/README.md) for detailed setup instructions.
 
 ## Getting Started
 
