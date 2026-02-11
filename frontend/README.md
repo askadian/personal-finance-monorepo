@@ -95,29 +95,54 @@ frontend/
 
 ## Current Implementation
 
-This is a **UI-only implementation** with placeholder logic for:
-- User authentication
-- Password reset
-- File uploads
+This implementation includes:
+- **AWS Cognito Integration**: Real authentication using AWS Cognito User Pool
+- **Protected Routes**: Dashboard requires authentication to access
+- **Session Management**: JWT token-based authentication
+- **Error Handling**: User-friendly error messages for authentication failures
 
-These features are designed to be integrated with AWS services in future updates:
-- AWS Cognito for authentication
+### Authentication Setup
+
+Before using the authentication features, you need to configure AWS Cognito:
+1. Create an AWS Cognito User Pool
+2. Configure the App Client
+3. Update the configuration in `src/aws-config.js`
+
+See [COGNITO_SETUP.md](./COGNITO_SETUP.md) for detailed setup instructions.
+
+### Placeholder Features
+
+The following features still use placeholder logic:
+- Password reset (to be implemented with Cognito forgot password flow)
+- File uploads (to be integrated with S3)
+- Data display (to be integrated with backend API)
+
+These features are designed to be integrated with AWS services:
 - S3 for file storage
 - Lambda for backend processing
 - DynamoDB for data storage
+- API Gateway for REST API
 
 ## Usage
 
-1. **Sign In**: Enter any email/username and password, then click "Sign In" to access the dashboard
+### Before First Use
+
+Configure AWS Cognito by following the [COGNITO_SETUP.md](./COGNITO_SETUP.md) guide.
+
+### Using the Application
+
+1. **Sign In**: Enter your Cognito user credentials, then click "Sign In" to access the dashboard
 2. **Navigate Tabs**: Click on any tab (Transactions, Income, Expenses, Net Worth) to view different sections
 3. **Upload Files**: Click the "Upload File" button, select a file, choose the file type, and click "Upload"
-4. **Logout**: Click the "Logout" button to return to the sign-in page
+4. **Logout**: Click the "Logout" button to sign out and return to the sign-in page
 
 ## Future Enhancements
 
-- Integration with AWS Cognito for real authentication
+- Implement password reset with Cognito forgot password flow
+- Add user registration flow
 - Connect to backend API for data persistence
 - Implement actual file upload to S3
 - Add data visualization charts
 - Implement transaction filtering and search
 - Add user profile management
+- Enable MFA (Multi-Factor Authentication)
