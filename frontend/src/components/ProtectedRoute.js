@@ -6,7 +6,7 @@
  * If not authenticated, it redirects to the sign-in page.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { isAuthenticated } from '../services/authService';
 
@@ -14,15 +14,15 @@ function ProtectedRoute({ children }) {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     const isAuth = await isAuthenticated();
     setAuthenticated(isAuth);
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   if (loading) {
     return (
