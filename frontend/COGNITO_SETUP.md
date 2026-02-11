@@ -47,6 +47,7 @@ If you haven't already created a Cognito User Pool, follow these steps:
 
 2. **Configure App Client**
    - App client name: `personal-finance-app`
+   - **IMPORTANT**: App type: **Public client** (DO NOT generate a client secret)
    - Authentication flows: Enable `ALLOW_USER_PASSWORD_AUTH`
    - OAuth 2.0 grant types: Select `Authorization code grant`
    - OAuth scopes: Select `email`, `openid`, `profile`
@@ -178,6 +179,17 @@ npm install aws-amplify @aws-amplify/ui-react
 3. Try accessing the dashboard again - you should be redirected to sign-in
 
 ## Troubleshooting
+
+### Error: "Client is configured with secret but SECRET_HASH was not received"
+
+This error occurs when your Cognito App Client is configured with a client secret. Frontend applications should use **public clients** without secrets.
+
+**Solution**: See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md#error-client-is-configured-with-secret-but-secret_hash-was-not-received) for detailed solutions.
+
+**Quick Fix**: Recreate your App Client as a public client:
+1. AWS Console > Cognito > User Pools > [Your Pool] > App integration
+2. Create new app client with **Public client** type (no secret)
+3. Update `userPoolClientId` in `aws-config.js` with the new client ID
 
 ### Error: "User does not exist"
 - Verify the username/email is correct

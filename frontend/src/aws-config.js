@@ -30,6 +30,14 @@ const awsConfig = {
       // Found in: AWS Console > Cognito > User Pools > [Your Pool] > App clients > Client ID
       userPoolClientId: 'YOUR_APP_CLIENT_ID',
 
+      // OPTIONAL - Amazon Cognito App Client Secret
+      // Note: Frontend apps (public clients) should NOT have a client secret.
+      // If your App Client has a secret, it should be reconfigured as a public client.
+      // This field is provided as a workaround if reconfiguration is not immediately possible.
+      // Found in: AWS Console > Cognito > User Pools > [Your Pool] > App clients > Show Details
+      // WARNING: Never commit actual secrets to version control. Use environment variables.
+      userPoolClientSecret: 'YOUR_APP_CLIENT_SECRET', // Leave as placeholder or remove if not needed
+
       // OPTIONAL - Enforce user authentication prior to accessing AWS resources
       // Default: false
       mandatorySignIn: false,
