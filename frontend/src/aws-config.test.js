@@ -20,11 +20,24 @@ describe('AWS Configuration', () => {
     expect(cognitoConfig).toHaveProperty('userPoolClientId');
   });
 
-  test('awsConfig should have optional userPoolClientSecret field', () => {
+  test('userPoolClientSecret should be undefined by default', () => {
     const cognitoConfig = awsConfig.Auth.Cognito;
     
-    // The field should exist (even if it's a placeholder value)
+    // The field should exist but be undefined by default (unless env var is set)
     expect(cognitoConfig).toHaveProperty('userPoolClientSecret');
+    
+    // If no environment variable is set, it should be undefined
+    if (!process.env.REACT_APP_COGNITO_APP_CLIENT_SECRET) {
+      expect(cognitoConfig.userPoolClientSecret).toBeUndefined();
+    }
+  });
+
+  test('userPoolClientSecret should not be a placeholder string', () => {
+    const cognitoConfig = awsConfig.Auth.Cognito;
+    
+    // Ensure it's not set to a placeholder value
+    expect(cognitoConfig.userPoolClientSecret).not.toBe('YOUR_APP_CLIENT_SECRET');
+    expect(cognitoConfig.userPoolClientSecret).not.toBe('your_client_secret_here');
   });
 
   test('awsConfig should have proper cookieStorage configuration', () => {
