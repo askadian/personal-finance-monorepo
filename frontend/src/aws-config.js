@@ -36,7 +36,7 @@ const awsConfig = {
       // This field is provided as a workaround if reconfiguration is not immediately possible.
       // Found in: AWS Console > Cognito > User Pools > [Your Pool] > App clients > Show Details
       // WARNING: Never commit actual secrets to version control. Use environment variables.
-      userPoolClientSecret: process.env.REACT_APP_COGNITO_APP_CLIENT_SECRET || undefined,
+      userPoolClientSecret: process.env.REACT_APP_COGNITO_APP_CLIENT_SECRET,
 
       // OPTIONAL - Enforce user authentication prior to accessing AWS resources
       // Default: false
