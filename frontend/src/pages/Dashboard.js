@@ -8,6 +8,7 @@ import {
   List, 
   DollarSign 
 } from 'lucide-react';
+import { logoutUser } from '../services/authService';
 import FileUpload from '../components/FileUpload';
 import './Dashboard.css';
 
@@ -16,10 +17,24 @@ function Dashboard() {
   const [showUpload, setShowUpload] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    // Placeholder logout logic
-    console.log('User logged out');
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      // Sign out from AWS Cognito
+      const result = await logoutUser();
+      
+      if (result.success) {
+        console.log('User logged out successfully');
+        navigate('/');
+      } else {
+        console.error('Logout failed:', result.error);
+        // Still navigate to sign-in page even if logout fails
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Unexpected error during logout:', error);
+      // Still navigate to sign-in page even if an error occurs
+      navigate('/');
+    }
   };
 
   const tabs = [
