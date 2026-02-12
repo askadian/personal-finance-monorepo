@@ -129,6 +129,10 @@ These features are designed to be integrated with AWS services:
 
 Configure AWS Cognito by following the [COGNITO_SETUP.md](./COGNITO_SETUP.md) guide.
 
+**Troubleshooting Login Issues?**
+- If you see "SECRET_HASH was not received" error, see [IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md)
+- For other authentication issues, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+
 ### Using the Application
 
 1. **Sign In**: Enter your Cognito user credentials, then click "Sign In" to access the dashboard
