@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   LogOut, 
@@ -32,13 +32,7 @@ function Dashboard() {
   const navigate = useNavigate();
 
   // Fetch transactions when component mounts or tab changes
-  useEffect(() => {
-    if (activeTab === 'transactions') {
-      fetchTransactions();
-    }
-  }, [activeTab]);
-
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     // Check if API is configured
     if (!isApiConfigured()) {
       setError('API endpoint not configured. Please check your .env file.');
@@ -51,7 +45,7 @@ function Dashboard() {
     try {
       const result = await getTransactions({
         limit: pagination.limit,
-        offset: pagination.offset
+        offset: 0
       });
 
       if (result.success) {
@@ -67,7 +61,13 @@ function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.limit]);
+
+  useEffect(() => {
+    if (activeTab === 'transactions') {
+      fetchTransactions();
+    }
+  }, [activeTab, fetchTransactions]);
 
   const handleLoadMore = async () => {
     setLoading(true);
