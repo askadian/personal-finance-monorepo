@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   LogOut, 
@@ -6,16 +6,94 @@ import {
   TrendingUp, 
   TrendingDown, 
   List, 
-  DollarSign 
+  DollarSign,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { logoutUser } from '../services/authService';
+import { 
+  getTransactions, 
+  sortTransactionsByDate,
+  formatTransactionAmount,
+  formatTransactionDate,
+  getCategoryDisplayName
+} from '../services/transactionService';
+import { isApiConfigured } from '../services/apiService';
 import FileUpload from '../components/FileUpload';
 import './Dashboard.css';
 
 function Dashboard() {
   const [activeTab, setActiveTab] = useState('transactions');
   const [showUpload, setShowUpload] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({ limit: 50, offset: 0, total: 0 });
   const navigate = useNavigate();
+
+  // Fetch transactions when component mounts or tab changes
+  const fetchTransactions = useCallback(async () => {
+    // Check if API is configured
+    if (!isApiConfigured()) {
+      setError('API endpoint not configured. Please check your .env file.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await getTransactions({
+        limit: pagination.limit,
+        offset: 0
+      });
+
+      if (result.success) {
+        // Sort transactions by date (newest first)
+        const sortedTransactions = sortTransactionsByDate(result.data);
+        setTransactions(sortedTransactions);
+        setPagination(result.pagination);
+      } else {
+        setError(result.error || 'Failed to fetch transactions');
+      }
+    } catch (err) {
+      setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  }, [pagination.limit]);
+
+  useEffect(() => {
+    if (activeTab === 'transactions') {
+      fetchTransactions();
+    }
+  }, [activeTab, fetchTransactions]);
+
+  const handleLoadMore = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await getTransactions({
+        limit: pagination.limit,
+        offset: pagination.offset + pagination.limit
+      });
+
+      if (result.success) {
+        // Append new transactions and sort the entire combined array
+        const combinedTransactions = [...transactions, ...result.data];
+        const sortedTransactions = sortTransactionsByDate(combinedTransactions);
+        setTransactions(sortedTransactions);
+        setPagination(result.pagination);
+      } else {
+        setError(result.error || 'Failed to load more transactions');
+      }
+    } catch (err) {
+      setError(err.message || 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -49,12 +127,85 @@ function Dashboard() {
       case 'transactions':
         return (
           <div className="tab-content">
-            <h2>Transactions</h2>
-            <p>Your transaction history will appear here.</p>
-            <div className="placeholder-content">
-              <List size={64} color="#ccc" />
-              <p>No transactions to display yet. Upload a bank statement to get started.</p>
+            <div className="content-header">
+              <h2>Transactions</h2>
+              <button 
+                className="btn-refresh"
+                onClick={fetchTransactions}
+                disabled={loading}
+                title="Refresh transactions"
+              >
+                <RefreshCw size={18} className={loading ? 'spinning' : ''} />
+              </button>
             </div>
+
+            {error && (
+              <div className="error-message">
+                <AlertCircle size={20} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {loading && transactions.length === 0 ? (
+              <div className="loading-state">
+                <RefreshCw size={48} className="spinning" color="#ccc" />
+                <p>Loading transactions...</p>
+              </div>
+            ) : transactions.length > 0 ? (
+              <>
+                <div className="transactions-list">
+                  {transactions.map((transaction) => (
+                    <div key={transaction.id} className="transaction-item">
+                      <div className="transaction-main">
+                        <div className="transaction-info">
+                          <span className="transaction-description">
+                            {transaction.description}
+                          </span>
+                          <span className="transaction-meta">
+                            {transaction.merchant && (
+                              <span className="merchant">{transaction.merchant}</span>
+                            )}
+                            {transaction.category && (
+                              <span className="category">
+                                {getCategoryDisplayName(transaction.category)}
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                        <div className="transaction-details">
+                          <span className={`transaction-amount ${transaction.amount < 0 ? 'debit' : 'credit'}`}>
+                            {formatTransactionAmount(transaction.amount)}
+                          </span>
+                          <span className="transaction-date">
+                            {formatTransactionDate(transaction.date)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {pagination.offset + pagination.limit < pagination.total && (
+                  <div className="load-more-container">
+                    <button 
+                      className="btn-load-more"
+                      onClick={handleLoadMore}
+                      disabled={loading}
+                    >
+                      {loading ? 'Loading...' : 'Load More'}
+                    </button>
+                    <p className="pagination-info">
+                      Showing {transactions.length} of {pagination.total} transactions
+                    </p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="placeholder-content">
+                <List size={64} color="#ccc" />
+                <p>No transactions to display yet. Upload a bank statement to get started.</p>
+              </div>
+            )}
           </div>
         );
       case 'income':
