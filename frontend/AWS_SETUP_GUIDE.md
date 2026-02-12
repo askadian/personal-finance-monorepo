@@ -251,7 +251,7 @@ This approach requires embedding AWS credentials in the frontend, which is a sec
    import uuid
 
    s3_client = boto3.client('s3')
-   BUCKET_NAME = os.environ.get('BUCKET_NAME', 'personal-finance-uploads-dev')
+   BUCKET_NAME = os.environ.get('S3_BUCKET_NAME', 'personal-finance-uploads-dev')
    URL_EXPIRATION = 300  # 5 minutes
 
    def lambda_handler(event, context):
@@ -370,7 +370,7 @@ This approach requires embedding AWS credentials in the frontend, which is a sec
    - Scroll down to "Configuration" → "Environment variables"
    - Click "Edit"
    - Add the following:
-     - Key: `BUCKET_NAME`, Value: `personal-finance-uploads-dev` (your bucket name)
+     - Key: `S3_BUCKET_NAME`, Value: `personal-finance-uploads-dev` (your bucket name)
    - Click "Save"
 
 5. **Click "Deploy"**

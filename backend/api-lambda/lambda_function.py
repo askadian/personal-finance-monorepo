@@ -462,7 +462,7 @@ def generate_upload_url(event: Dict[str, Any]) -> Dict[str, Any]:
         file_id = str(uuid.uuid4())
         
         # Calculate expiration time
-        expires_at = (datetime.now(timezone.utc) + timedelta(seconds=PRESIGNED_URL_EXPIRATION)).isoformat()
+        expires_at = (datetime.now(timezone.utc) + timedelta(seconds=PRESIGNED_URL_EXPIRATION)).isoformat().replace('+00:00', 'Z')
         
         return create_response(200, {
             'uploadUrl': presigned_url,
