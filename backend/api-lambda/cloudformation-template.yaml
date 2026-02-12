@@ -16,6 +16,11 @@ Parameters:
     Default: personal-finance-data
     Description: Name of the DynamoDB table for storing financial data
   
+  S3BucketName:
+    Type: String
+    Default: personal-finance-uploads
+    Description: Base name of the S3 bucket for file uploads (will be suffixed with environment)
+  
   LogRetentionDays:
     Type: Number
     Default: 30
@@ -62,6 +67,16 @@ Resources:
                 Resource:
                   - !Sub 'arn:aws:s3:::personal-finance-${Environment}-*'
                   - !Sub 'arn:aws:s3:::personal-finance-${Environment}-*/*'
+        - PolicyName: S3PresignedUrlAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                Resource:
+                  - !Sub 'arn:aws:s3:::${S3BucketName}-${Environment}/*'
 
   # Lambda Function
   PersonalFinanceAPILambda:
@@ -78,6 +93,7 @@ Resources:
         Variables:
           ENVIRONMENT: !Ref Environment
           DYNAMODB_TABLE_NAME: !Ref DynamoDBTableName
+          S3_BUCKET_NAME: !Sub '${S3BucketName}-${Environment}'
           LOG_LEVEL: INFO
       Code:
         ZipFile: |

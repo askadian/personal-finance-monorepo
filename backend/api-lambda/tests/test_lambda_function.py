@@ -360,7 +360,8 @@ class TestErrorHandling:
         
         response = lambda_handler(event, None)
         
-        assert response['statusCode'] == 405
+        # POST to /transactions returns 404 (path not found for POST method)
+        assert response['statusCode'] == 404
         body = json.loads(response['body'])
         assert 'error' in body
     
@@ -424,3 +425,151 @@ class TestV1PathPrefix:
         assert response['statusCode'] == 200
         body = json.loads(response['body'])
         assert 'data' in body
+
+
+class TestUploadUrlEndpoint:
+    """Tests for POST /upload-url endpoint"""
+    
+    def test_generate_upload_url_success(self, monkeypatch):
+        """Test successful presigned URL generation"""
+        # Mock S3 client
+        mock_url = 'https://s3.amazonaws.com/test-bucket/users/user_123/test.pdf?presigned-params'
+        
+        def mock_generate_presigned_url(operation, Params, ExpiresIn):
+            return mock_url
+        
+        import lambda_function
+        monkeypatch.setattr(lambda_function.s3_client, 'generate_presigned_url', mock_generate_presigned_url)
+        
+        event = {
+            'path': '/v1/upload-url',
+            'httpMethod': 'POST',
+            'headers': {'X-User-Id': 'user_123'},
+            'body': json.dumps({
+                'fileKey': 'users/user_123/bank-statement/test.pdf',
+                'contentType': 'application/pdf'
+            })
+        }
+        
+        response = lambda_handler(event, None)
+        
+        assert response['statusCode'] == 200
+        body = json.loads(response['body'])
+        assert 'uploadUrl' in body
+        assert 'fileId' in body
+        assert 'expiresAt' in body
+        assert body['uploadUrl'] == mock_url
+    
+    def test_generate_upload_url_missing_file_key(self):
+        """Test error when fileKey is missing"""
+        event = {
+            'path': '/v1/upload-url',
+            'httpMethod': 'POST',
+            'headers': {'X-User-Id': 'user_123'},
+            'body': json.dumps({
+                'contentType': 'application/pdf'
+            })
+        }
+        
+        response = lambda_handler(event, None)
+        
+        assert response['statusCode'] == 400
+        body = json.loads(response['body'])
+        assert 'error' in body
+        assert 'fileKey' in body['error']['message']
+    
+    def test_generate_upload_url_invalid_prefix(self):
+        """Test error when fileKey doesn't start with users/"""
+        event = {
+            'path': '/v1/upload-url',
+            'httpMethod': 'POST',
+            'headers': {'X-User-Id': 'user_123'},
+            'body': json.dumps({
+                'fileKey': 'public/test.pdf',
+                'contentType': 'application/pdf'
+            })
+        }
+        
+        response = lambda_handler(event, None)
+        
+        assert response['statusCode'] == 400
+        body = json.loads(response['body'])
+        assert 'error' in body
+        assert 'users/' in body['error']['message']
+    
+    def test_generate_upload_url_wrong_user(self):
+        """Test error when trying to upload to another user's folder"""
+        event = {
+            'path': '/v1/upload-url',
+            'httpMethod': 'POST',
+            'headers': {'X-User-Id': 'user_123'},
+            'body': json.dumps({
+                'fileKey': 'users/other_user/test.pdf',
+                'contentType': 'application/pdf'
+            })
+        }
+        
+        response = lambda_handler(event, None)
+        
+        assert response['statusCode'] == 403
+        body = json.loads(response['body'])
+        assert 'error' in body
+        assert 'Unauthorized' in body['error']['message']
+    
+    def test_generate_upload_url_invalid_file_type(self):
+        """Test error when file type is not allowed"""
+        event = {
+            'path': '/v1/upload-url',
+            'httpMethod': 'POST',
+            'headers': {'X-User-Id': 'user_123'},
+            'body': json.dumps({
+                'fileKey': 'users/user_123/test.exe',
+                'contentType': 'application/octet-stream'
+            })
+        }
+        
+        response = lambda_handler(event, None)
+        
+        assert response['statusCode'] == 400
+        body = json.loads(response['body'])
+        assert 'error' in body
+        assert 'file type' in body['error']['message'].lower()
+    
+    def test_generate_upload_url_no_user_id(self, monkeypatch):
+        """Test error when user is not authenticated"""
+        # Mock S3 and get_user_id to return None
+        import lambda_function
+        monkeypatch.setattr(lambda_function, 'get_user_id', lambda event: None)
+        
+        event = {
+            'path': '/v1/upload-url',
+            'httpMethod': 'POST',
+            'headers': {},
+            'requestContext': {},
+            'body': json.dumps({
+                'fileKey': 'users/user_123/test.pdf',
+                'contentType': 'application/pdf'
+            })
+        }
+        
+        response = lambda_handler(event, None)
+        
+        assert response['statusCode'] == 401
+        body = json.loads(response['body'])
+        assert 'error' in body
+        assert 'Unauthorized' in body['error']['message']
+    
+    def test_generate_upload_url_invalid_json(self):
+        """Test error with invalid JSON in request body"""
+        event = {
+            'path': '/v1/upload-url',
+            'httpMethod': 'POST',
+            'headers': {'X-User-Id': 'user_123'},
+            'body': 'invalid json'
+        }
+        
+        response = lambda_handler(event, None)
+        
+        assert response['statusCode'] == 400
+        body = json.loads(response['body'])
+        assert 'error' in body

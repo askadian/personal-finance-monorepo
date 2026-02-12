@@ -7,9 +7,11 @@ It responds to requests for transactions, income, expenses, net worth, and files
 
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, List, Optional
 from decimal import Decimal
+import boto3
+import uuid
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -20,6 +22,12 @@ class DecimalEncoder(json.JSONEncoder):
         return super(DecimalEncoder, self).default(obj)
 
 
+# Initialize S3 client
+s3_client = boto3.client('s3')
+BUCKET_NAME = os.environ.get('S3_BUCKET_NAME', 'personal-finance-uploads-dev')
+PRESIGNED_URL_EXPIRATION = 300  # 5 minutes
+
+
 def create_response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
     """Create a standardized API Gateway response"""
     return {
@@ -28,7 +36,7 @@ def create_response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-            'Access-Control-Allow-Methods': 'GET,OPTIONS'
+            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
         },
         'body': json.dumps(body, cls=DecimalEncoder)
     }
@@ -407,6 +415,68 @@ def get_files(event: Dict[str, Any]) -> Dict[str, Any]:
     })
 
 
+def generate_upload_url(event: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Handle POST /upload-url endpoint
+    Generate presigned URL for S3 file upload
+    """
+    user_id = get_user_id(event)
+    if not user_id:
+        return create_error_response(401, 'Unauthorized: User ID not found')
+    
+    try:
+        # Parse request body
+        body = json.loads(event.get('body', '{}'))
+        file_key = body.get('fileKey')
+        content_type = body.get('contentType', 'application/octet-stream')
+        
+        if not file_key:
+            return create_error_response(400, 'fileKey is required')
+        
+        # Validate file key format (must start with users/)
+        if not file_key.startswith('users/'):
+            return create_error_response(400, 'Invalid fileKey format. Must start with users/')
+        
+        # Verify that the file key belongs to the authenticated user
+        expected_prefix = f'users/{user_id}/'
+        if not file_key.startswith(expected_prefix):
+            return create_error_response(403, 'Unauthorized: Cannot upload to another user\'s folder')
+        
+        # Validate file extension
+        allowed_extensions = ['.pdf', '.csv', '.xlsx', '.xls']
+        if not any(file_key.lower().endswith(ext) for ext in allowed_extensions):
+            return create_error_response(400, 'Invalid file type. Only PDF, CSV, and Excel files are allowed')
+        
+        # Generate presigned URL
+        presigned_url = s3_client.generate_presigned_url(
+            'put_object',
+            Params={
+                'Bucket': BUCKET_NAME,
+                'Key': file_key,
+                'ContentType': content_type
+            },
+            ExpiresIn=PRESIGNED_URL_EXPIRATION
+        )
+        
+        # Generate file ID
+        file_id = str(uuid.uuid4())
+        
+        # Calculate expiration time
+        expires_at = (datetime.now(timezone.utc) + timedelta(seconds=PRESIGNED_URL_EXPIRATION)).isoformat()
+        
+        return create_response(200, {
+            'uploadUrl': presigned_url,
+            'fileId': file_id,
+            'expiresAt': expires_at
+        })
+        
+    except json.JSONDecodeError:
+        return create_error_response(400, 'Invalid JSON in request body')
+    except Exception as e:
+        print(f"Error generating presigned URL: {str(e)}")
+        return create_error_response(500, f'Failed to generate upload URL: {str(e)}')
+
+
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Main Lambda handler for Personal Finance API
@@ -442,6 +512,14 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return get_files(event)
             else:
                 return create_error_response(404, f'Not Found: Path {path} not found')
+        
+        # Route POST requests
+        elif method == 'POST':
+            if path == '/upload-url' or path == '/v1/upload-url':
+                return generate_upload_url(event)
+            else:
+                return create_error_response(404, f'Not Found: Path {path} not found')
+        
         else:
             return create_error_response(405, f'Method Not Allowed: {method}')
     
