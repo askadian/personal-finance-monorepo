@@ -195,7 +195,7 @@ Before starting, ensure you have:
    - Click "Create function"
    - **Option:** Author from scratch
    - **Function name:** `personal-finance-api`
-   - **Runtime:** Python 3.11 or Python 3.12
+   - **Runtime:** Python 3.12
    - **Architecture:** x86_64
    - **Permissions:** "Create a new role with basic Lambda permissions"
    - Click "Create function"

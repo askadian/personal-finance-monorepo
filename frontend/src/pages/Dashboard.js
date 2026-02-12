@@ -80,8 +80,10 @@ function Dashboard() {
       });
 
       if (result.success) {
-        const sortedNewTransactions = sortTransactionsByDate(result.data);
-        setTransactions([...transactions, ...sortedNewTransactions]);
+        // Append new transactions and sort the entire combined array
+        const combinedTransactions = [...transactions, ...result.data];
+        const sortedTransactions = sortTransactionsByDate(combinedTransactions);
+        setTransactions(sortedTransactions);
         setPagination(result.pagination);
       } else {
         setError(result.error || 'Failed to load more transactions');
