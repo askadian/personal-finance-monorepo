@@ -170,18 +170,10 @@ export const uploadFile = async (file, fileType, onProgress = null) => {
     // Generate S3 key
     const fileKey = generateFileKey(userId, file.name, fileType);
 
-    // Get presigned URL from backend
-    // NOTE: This endpoint needs to be implemented in the API Lambda
-    // For now, we'll upload directly to S3 with AWS SDK
-    // This is a PLACEHOLDER implementation
-    
-    const bucketName = process.env.REACT_APP_S3_BUCKET_NAME || 'personal-finance-uploads-dev';
-    const region = process.env.REACT_APP_AWS_REGION || 'us-east-1';
+    // Get presigned URL from backend API
+    const { uploadUrl, fileId } = await getPresignedUrl(fileKey, file.type);
 
-    // OPTION 1: Use presigned URL (RECOMMENDED - requires API Lambda endpoint)
-    // Uncomment when /v1/upload-url endpoint is implemented
-    /*
-    const { uploadUrl, fileId, expiresAt } = await getPresignedUrl(fileKey, file.type);
+    // Upload file directly to S3
     await uploadToS3(uploadUrl, file, onProgress);
     
     return {
@@ -190,17 +182,6 @@ export const uploadFile = async (file, fileType, onProgress = null) => {
       fileKey,
       message: 'File uploaded successfully'
     };
-    */
-
-    // OPTION 2: Direct upload using AWS SDK (requires AWS credentials in browser)
-    // This is NOT RECOMMENDED for production but works for development
-    // Requires: npm install @aws-sdk/client-s3
-    
-    throw new Error(
-      'Upload service is not fully configured. ' +
-      'Please set up the API Gateway endpoint for presigned URLs or configure AWS credentials for direct upload. ' +
-      'See AWS_SETUP_GUIDE.md for instructions.'
-    );
 
   } catch (error) {
     console.error('Upload failed:', error);
@@ -223,10 +204,4 @@ export const getUploadConfig = () => {
     bucketName,
     region
   };
-};
-
-export default {
-  uploadFile,
-  validateFile,
-  getUploadConfig
 };
