@@ -158,6 +158,8 @@ export const validateFile = (file) => {
 export const uploadFile = async (file, fileType, onProgress = null) => {
   try {
     // Inline validation instead of calling validateFile()
+    // Note: Using inline validation to throw errors directly rather than returning
+    // a validation object, which is more consistent with error handling in this function
     if (!file) {
       throw new Error('No file selected');
     }
