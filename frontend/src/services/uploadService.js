@@ -8,6 +8,17 @@
 import { fetchAuthSession } from 'aws-amplify/auth';
 
 /**
+ * File validation constants
+ */
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_TYPES = [
+  'application/pdf',
+  'text/csv',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+];
+
+/**
  * Generate a unique file key for S3 storage
  * @param {string} userId - The user's unique identifier
  * @param {string} fileName - The original file name
@@ -50,7 +61,8 @@ const getPresignedUrl = async (fileKey, contentType) => {
       },
       body: JSON.stringify({
         fileKey,
-        contentType
+        contentType,
+        fileName: fileKey.split('/').pop() // IMPORTANT: Add fileName for Lambda processing
       })
     });
 
@@ -115,14 +127,6 @@ const uploadToS3 = async (presignedUrl, file, onProgress) => {
  * @returns {object} - Validation result
  */
 export const validateFile = (file) => {
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-  const ALLOWED_TYPES = [
-    'application/pdf',
-    'text/csv',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  ];
-
   if (!file) {
     return { valid: false, error: 'No file selected' };
   }
@@ -153,10 +157,19 @@ export const validateFile = (file) => {
  */
 export const uploadFile = async (file, fileType, onProgress = null) => {
   try {
-    // Validate file
-    const validation = validateFile(file);
-    if (!validation.valid) {
-      throw new Error(validation.error);
+    // Inline validation instead of calling validateFile()
+    // Note: Using inline validation to throw errors directly rather than returning
+    // a validation object, which is more consistent with error handling in this function
+    if (!file) {
+      throw new Error('No file selected');
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      throw new Error(`File size exceeds ${MAX_FILE_SIZE / (1024 * 1024)}MB limit`);
+    }
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      throw new Error('Invalid file type. Only PDF, CSV, and Excel files are allowed');
     }
 
     // Get current user
