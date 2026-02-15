@@ -38,8 +38,11 @@ const getPresignedUrl = async (fileKey, contentType) => {
       throw new Error('User not authenticated');
     }
 
-    // TODO: Replace with actual API Gateway endpoint
-    const apiEndpoint = process.env.REACT_APP_API_ENDPOINT || 'YOUR_API_GATEWAY_ENDPOINT';
+    const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+    
+    if (!apiEndpoint) {
+      throw new Error('API endpoint not configured. Please check your .env.local file.');
+    }
     
     // Make request to API Gateway to get presigned URL
     const response = await fetch(`${apiEndpoint}/v1/upload-url`, {
@@ -50,7 +53,8 @@ const getPresignedUrl = async (fileKey, contentType) => {
       },
       body: JSON.stringify({
         fileKey,
-        contentType
+        contentType,
+        fileName: fileKey.split('/').pop()
       })
     });
 
