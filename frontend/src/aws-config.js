@@ -18,17 +18,17 @@ const awsConfig = {
     Cognito: {
       // REQUIRED - Amazon Cognito Region
       // Example: 'us-east-1', 'us-west-2', 'eu-west-1'
-      region: 'YOUR_AWS_REGION',
+      region: 'us-east-1',
 
       // REQUIRED - Amazon Cognito User Pool ID
       // Example: 'us-east-1_abcd1234'
       // Found in: AWS Console > Cognito > User Pools > [Your Pool] > General Settings > Pool Id
-      userPoolId: 'YOUR_USER_POOL_ID',
+      userPoolId: 'us-east-1_ypJY5Q49F',
 
       // REQUIRED - Amazon Cognito App Client ID
       // Example: '1a2b3c4d5e6f7g8h9i0j1k2l3m'
       // Found in: AWS Console > Cognito > User Pools > [Your Pool] > App clients > Client ID
-      userPoolClientId: 'YOUR_APP_CLIENT_ID',
+      userPoolClientId: '26g1835ki3plirj0dsfab38vqb',
 
       // OPTIONAL - Amazon Cognito App Client Secret
       // Note: Frontend apps (public clients) should NOT have a client secret.
@@ -36,7 +36,7 @@ const awsConfig = {
       // This field is provided as a workaround if reconfiguration is not immediately possible.
       // Found in: AWS Console > Cognito > User Pools > [Your Pool] > App clients > Show Details
       // WARNING: Never commit actual secrets to version control. Use environment variables.
-      userPoolClientSecret: process.env.REACT_APP_COGNITO_APP_CLIENT_SECRET,
+      //userPoolClientSecret: process.env.REACT_APP_COGNITO_APP_CLIENT_SECRET,
 
       // OPTIONAL - Enforce user authentication prior to accessing AWS resources
       // Default: false
@@ -66,7 +66,7 @@ const awsConfig = {
           // REQUIRED - Hosted UI domain
           // Example: 'your-domain.auth.us-east-1.amazoncognito.com'
           // Found in: AWS Console > Cognito > User Pools > [Your Pool] > App integration > Domain
-          domain: 'YOUR_COGNITO_DOMAIN.auth.YOUR_AWS_REGION.amazoncognito.com',
+          domain: 'us-east-1ypjy5q49f.auth.us-east-1.amazoncognito.com',
 
           // REQUIRED - OAuth scopes
           // Common scopes: 'phone', 'email', 'profile', 'openid', 'aws.cognito.signin.user.admin'
