@@ -1,74 +1,70 @@
 # Personal Finance Tracker - Frontend
 
-This is the React-based frontend for the Personal Finance Tracker application.
+React frontend application for the Personal Finance Tracker.
 
-## Features
-
-- **Sign In Page**: User authentication interface with email/username and password fields
-- **Forgot Password**: Password reset functionality (placeholder for AWS Cognito integration)
-- **Dashboard**: Main application interface with multiple tabs
-  - Transactions: View transaction history
-  - Income: Track income sources and trends
-  - Expenses: Monitor spending patterns
-  - Net Worth: View estimated net worth over time
-- **File Upload**: Upload financial documents with type selection
-  - Bank Statements
-  - Pay Stubs
-  - Tax Documents (1099-INT, 1099-DIV, W-2)
-  - Credit Card Statements
-  - Investment Statements
-- **Logout**: Sign out functionality
-
-## Tech Stack
-
-- React 19.2.4
-- React Router DOM 7.13.0
-- Lucide React (for icons)
-- CSS3 (for styling)
-
-## Getting Started
+## Quick Start
 
 ### Prerequisites
-
-- Node.js (v14 or higher)
+- Node.js 14+ 
 - npm or yarn
 
 ### Installation
 
-1. Navigate to the frontend directory:
+1. **Clone the repository**
    ```bash
-   cd frontend
+   git clone https://github.com/askadian/personal-finance-monorepo.git
+   cd personal-finance-monorepo/frontend
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-### Running the Development Server
+3. **Configure environment variables**
+   
+   Copy the example environment file:
+   ```bash
+   cp .env.example .env.local
+   ```
+   
+   The `.env.local` file should already have the correct values. If not, update it with:
+   ```
+   REACT_APP_API_ENDPOINT=https://ffcijer5wl.execute-api.us-east-1.amazonaws.com/dev
+   REACT_APP_S3_BUCKET_NAME=personal-finance-uploads-dev
+   REACT_APP_AWS_REGION=us-east-1
+   ```
 
-Start the development server:
-```bash
-npm start
-```
+4. **Start the development server**
+   ```bash
+   npm start
+   ```
+   
+   The app will open at [http://localhost:3000](http://localhost:3000)
 
-The application will open in your browser at [http://localhost:3000](http://localhost:3000).
+## Features
 
-### Building for Production
+- **Authentication**: AWS Cognito user authentication
+- **File Upload**: Upload financial documents (bank statements, pay stubs, tax forms) directly to S3
+- **Dashboard**: View transactions, income, expenses, and net worth
+- **Protected Routes**: Authentication-required pages
 
-Create an optimized production build:
-```bash
-npm run build
-```
+## File Upload Architecture
 
-The build artifacts will be stored in the `build/` directory.
+The application uses a secure file upload flow:
 
-### Running Tests
+1. User selects file in React frontend
+2. Frontend requests presigned URL from API Gateway
+3. API Gateway validates JWT token via Cognito authorizer
+4. Lambda function generates presigned S3 URL (5-minute expiration)
+5. Frontend uploads file directly to S3 using presigned URL
+6. File stored in S3 with path: `users/{userId}/{file-type}/{timestamp}-{filename}`
 
-Run the test suite:
-```bash
-npm test
-```
+### Supported File Types
+- PDF documents
+- CSV files
+- Excel files (.xlsx, .xls)
+- Max file size: 10MB
 
 ## Project Structure
 
@@ -79,74 +75,69 @@ frontend/
 │   └── index.html
 ├── src/
 │   ├── components/
-│   │   ├── FileUpload.js      # File upload modal component
-│   │   └── FileUpload.css
+│   │   ├── FileUpload.js       # File upload modal component
+│   │   ├── FileUpload.css
+│   │   └── ProtectedRoute.js   # Authentication wrapper
 │   ├── pages/
-│   │   ├── SignIn.js           # Sign-in page
+│   │   ├── SignIn.js            # Login page
 │   │   ├── SignIn.css
-│   │   ├── Dashboard.js        # Main dashboard with tabs
+│   │   ├── Dashboard.js         # Main dashboard
 │   │   └── Dashboard.css
-│   ├── App.js                  # Main app component with routing
-│   ├── App.css                 # Global styles
-│   └── index.js                # Application entry point
+│   ├── services/
+│   │   ├── authService.js       # AWS Cognito authentication
+│   │   └── uploadService.js     # S3 file upload logic
+│   ├── aws-config.js            # AWS Amplify configuration
+│   ├── App.js                   # Main app with routing
+│   ├── App.css
+│   └── index.js                 # Entry point
+├── .env.example                 # Environment variables template
+├── .gitignore
 ├── package.json
-└── .gitignore
+└── README.md
 ```
 
-## Current Implementation
+## Environment Variables
 
-This implementation includes:
-- **AWS Cognito Integration**: Real authentication using AWS Cognito User Pool
-- **Protected Routes**: Dashboard requires authentication to access
-- **Session Management**: JWT token-based authentication
-- **Error Handling**: User-friendly error messages for authentication failures
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `REACT_APP_API_ENDPOINT` | API Gateway endpoint URL | `https://{api-id}.execute-api.{region}.amazonaws.com/{stage}` |
+| `REACT_APP_S3_BUCKET_NAME` | S3 bucket for file uploads | `personal-finance-uploads-dev` |
+| `REACT_APP_AWS_REGION` | AWS region | `us-east-1` |
 
-### Authentication Setup
+## AWS Resources
 
-Before using the authentication features, you need to configure AWS Cognito:
-1. Create an AWS Cognito User Pool
-2. Configure the App Client
-3. Update the configuration in `src/aws-config.js`
+- **API Gateway**: `ffcijer5wl` (stage: `dev`)
+- **S3 Bucket**: `personal-finance-uploads-dev`
+- **Lambda**: `PersonalFinanceUploadUrl`
+- **Cognito User Pool**: `us-east-1_ypJY5Q49F`
+- **Cognito App Client**: `26g1835ki3plirj0dsfab38vqb`
 
-See [COGNITO_SETUP.md](./COGNITO_SETUP.md) for detailed setup instructions.
+## Troubleshooting
 
-### Placeholder Features
+### "API endpoint not configured" error
+- Make sure `.env.local` exists and has `REACT_APP_API_ENDPOINT` set
+- Restart the dev server after creating/modifying `.env.local`
 
-The following features still use placeholder logic:
-- Password reset (to be implemented with Cognito forgot password flow)
-- File uploads (to be integrated with S3)
-- Data display (to be integrated with backend API)
+### CORS errors on file upload
+- Verify API Gateway has OPTIONS method configured
+- Check that S3 bucket CORS policy allows `PUT` from `localhost:3000`
 
-These features are designed to be integrated with AWS services:
-- S3 for file storage
-- Lambda for backend processing
-- DynamoDB for data storage
-- API Gateway for REST API
+### Authentication fails
+- Check AWS Cognito user pool configuration
+- Verify app client is configured as "Public client" (no secret)
+- See `aws-config.js` for Cognito configuration
 
-## Usage
+## Available Scripts
 
-### Before First Use
+### `npm start`
+Runs the app in development mode at [http://localhost:3000](http://localhost:3000)
 
-Configure AWS Cognito by following the [COGNITO_SETUP.md](./COGNITO_SETUP.md) guide.
+### `npm test`
+Launches the test runner in interactive watch mode
 
-**Troubleshooting Login Issues?**
-- If you see "SECRET_HASH was not received" error, see [IMPLEMENTATION_GUIDE.md](./IMPLEMENTATION_GUIDE.md)
-- For other authentication issues, see [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+### `npm run build`
+Builds the app for production to the `build/` folder
 
-### Using the Application
+## License
 
-1. **Sign In**: Enter your Cognito user credentials, then click "Sign In" to access the dashboard
-2. **Navigate Tabs**: Click on any tab (Transactions, Income, Expenses, Net Worth) to view different sections
-3. **Upload Files**: Click the "Upload File" button, select a file, choose the file type, and click "Upload"
-4. **Logout**: Click the "Logout" button to sign out and return to the sign-in page
-
-## Future Enhancements
-
-- Implement password reset with Cognito forgot password flow
-- Add user registration flow
-- Connect to backend API for data persistence
-- Implement actual file upload to S3
-- Add data visualization charts
-- Implement transaction filtering and search
-- Add user profile management
-- Enable MFA (Multi-Factor Authentication)
+MIT
