@@ -50,7 +50,8 @@ const getPresignedUrl = async (fileKey, contentType) => {
       },
       body: JSON.stringify({
         fileKey,
-        contentType
+        contentType,
+        fileName: fileKey.split('/').pop() // IMPORTANT: Add fileName for Lambda processing
       })
     });
 
@@ -153,10 +154,25 @@ export const validateFile = (file) => {
  */
 export const uploadFile = async (file, fileType, onProgress = null) => {
   try {
-    // Validate file
-    const validation = validateFile(file);
-    if (!validation.valid) {
-      throw new Error(validation.error);
+    // Inline validation instead of calling validateFile()
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    const ALLOWED_TYPES = [
+      'application/pdf',
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+
+    if (!file) {
+      throw new Error('No file selected');
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      throw new Error(`File size exceeds ${MAX_FILE_SIZE / (1024 * 1024)}MB limit`);
+    }
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      throw new Error('Invalid file type. Only PDF, CSV, and Excel files are allowed');
     }
 
     // Get current user
