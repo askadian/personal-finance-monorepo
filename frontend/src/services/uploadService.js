@@ -8,6 +8,17 @@
 import { fetchAuthSession } from 'aws-amplify/auth';
 
 /**
+ * File validation constants
+ */
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_TYPES = [
+  'application/pdf',
+  'text/csv',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+];
+
+/**
  * Generate a unique file key for S3 storage
  * @param {string} userId - The user's unique identifier
  * @param {string} fileName - The original file name
@@ -116,14 +127,6 @@ const uploadToS3 = async (presignedUrl, file, onProgress) => {
  * @returns {object} - Validation result
  */
 export const validateFile = (file) => {
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-  const ALLOWED_TYPES = [
-    'application/pdf',
-    'text/csv',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  ];
-
   if (!file) {
     return { valid: false, error: 'No file selected' };
   }
@@ -155,14 +158,6 @@ export const validateFile = (file) => {
 export const uploadFile = async (file, fileType, onProgress = null) => {
   try {
     // Inline validation instead of calling validateFile()
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-    const ALLOWED_TYPES = [
-      'application/pdf',
-      'text/csv',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    ];
-
     if (!file) {
       throw new Error('No file selected');
     }
