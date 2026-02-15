@@ -155,17 +155,10 @@ export const validateFile = (file) => {
  */
 export const uploadFile = async (file, fileType, onProgress = null) => {
   try {
-    // Inline validation instead of calling validateFile()
-    if (!file) {
-      throw new Error('No file selected');
-    }
-
-    if (file.size > MAX_FILE_SIZE) {
-      throw new Error(`File size exceeds ${MAX_FILE_SIZE / (1024 * 1024)}MB limit`);
-    }
-
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      throw new Error('Invalid file type. Only PDF, CSV, and Excel files are allowed');
+    // Validate file
+    const validation = validateFile(file);
+    if (!validation.valid) {
+      throw new Error(validation.error);
     }
 
     // Get current user
