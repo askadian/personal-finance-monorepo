@@ -502,7 +502,8 @@ This approach requires embedding AWS credentials in the frontend, which is a sec
    REACT_APP_S3_BUCKET_NAME=personal-finance-uploads-dev
    
    # API Gateway Endpoint (from Part 4, Step 5)
-   REACT_APP_API_ENDPOINT=https://abc123xyz.execute-api.us-east-1.amazonaws.com/prod
+   REACT_APP_UPLOAD_API_URL=https://abc123xyz.execute-api.us-east-1.amazonaws.com/prod
+   REACT_APP_FINANCE_API_URL=https://def456uvw.execute-api.us-east-1.amazonaws.com
    
    # Cognito Configuration (if not already set)
    REACT_APP_COGNITO_USER_POOL_ID=us-east-1_abcd1234

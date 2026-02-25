@@ -38,10 +38,10 @@ const getPresignedUrl = async (fileKey, contentType) => {
       throw new Error('User not authenticated');
     }
 
-    const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+    const apiEndpoint = process.env.REACT_APP_UPLOAD_API_URL;
     
     if (!apiEndpoint) {
-      throw new Error('API endpoint not configured. Please check your .env.local file.');
+      throw new Error('Upload API endpoint not configured. Please check your .env.local file.');
     }
     
     // Make request to API Gateway to get presigned URL
@@ -198,7 +198,7 @@ export const uploadFile = async (file, fileType, onProgress = null) => {
  * @returns {object} - Configuration status
  */
 export const getUploadConfig = () => {
-  const apiEndpoint = process.env.REACT_APP_API_ENDPOINT;
+  const apiEndpoint = process.env.REACT_APP_UPLOAD_API_URL;
   const bucketName = process.env.REACT_APP_S3_BUCKET_NAME;
   const region = process.env.REACT_APP_AWS_REGION;
 
