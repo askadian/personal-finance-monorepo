@@ -484,9 +484,11 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Routes requests to appropriate handler functions based on the HTTP path and method.
     """
     try:
-        # Extract path and method
-        path = event.get('path', '')
-        method = event.get('httpMethod', '')
+        # Extract path and method for both API Gateway REST API (payload v1)
+        # and HTTP API (payload v2)
+        path = event.get('path') or event.get('rawPath', '')
+        method = event.get('httpMethod') or event.get('requestContext', {}).get('http', {}).get('method', '')
+        method = method.upper()
         
         # Handle OPTIONS for CORS preflight
         if method == 'OPTIONS':
