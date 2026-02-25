@@ -30,7 +30,8 @@ React frontend application for the Personal Finance Tracker.
    
    The `.env.local` file should already have the correct values. If not, update it with:
    ```
-   REACT_APP_API_ENDPOINT=https://ffcijer5wl.execute-api.us-east-1.amazonaws.com/dev
+   REACT_APP_UPLOAD_API_URL=https://ffcijer5wl.execute-api.us-east-1.amazonaws.com/dev
+   REACT_APP_FINANCE_API_URL=https://xyz123.execute-api.us-east-1.amazonaws.com
    REACT_APP_S3_BUCKET_NAME=personal-finance-uploads-dev
    REACT_APP_AWS_REGION=us-east-1
    ```
@@ -100,7 +101,8 @@ frontend/
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `REACT_APP_API_ENDPOINT` | API Gateway endpoint URL | `https://{api-id}.execute-api.{region}.amazonaws.com/{stage}` |
+| `REACT_APP_UPLOAD_API_URL` | Upload API Gateway endpoint URL | `https://{api-id}.execute-api.{region}.amazonaws.com/{stage}` |
+| `REACT_APP_FINANCE_API_URL` | Finance API Gateway endpoint URL | `https://{api-id}.execute-api.{region}.amazonaws.com` |
 | `REACT_APP_S3_BUCKET_NAME` | S3 bucket for file uploads | `personal-finance-uploads-dev` |
 | `REACT_APP_AWS_REGION` | AWS region | `us-east-1` |
 
@@ -115,7 +117,7 @@ frontend/
 ## Troubleshooting
 
 ### "API endpoint not configured" error
-- Make sure `.env.local` exists and has `REACT_APP_API_ENDPOINT` set
+- Make sure `.env.local` exists and has `REACT_APP_UPLOAD_API_URL` and `REACT_APP_FINANCE_API_URL` set
 - Restart the dev server after creating/modifying `.env.local`
 
 ### CORS errors on file upload
