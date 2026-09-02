@@ -50,6 +50,21 @@ React frontend application for the Personal Finance Tracker.
 - **Dashboard**: View transactions, income, expenses, and net worth
 - **Protected Routes**: Authentication-required pages
 
+## Documentation Index
+
+### Hosting and Deployment
+- [Hosting on S3 and CloudFront](./HOSTING_ON_S3_AND_CLOUDFRONT.md)
+- [Frontend Cost Analysis](./COST_ANALYSIS.md)
+
+### Cognito and Authentication
+- [Quick Start Guide](./QUICKSTART.md)
+- [AWS Cognito Setup Guide](./COGNITO_SETUP.md)
+- [Cognito Configuration Reference](./COGNITO_CONFIG_REFERENCE.md)
+- [Implementation Guide](./IMPLEMENTATION_GUIDE.md)
+- [Secret Hash Fix](./SECRET_HASH_FIX.md)
+- [Troubleshooting](./TROUBLESHOOTING.md)
+- [Documentation Index](./DOCUMENTATION_INDEX.md)
+
 ## File Upload Architecture
 
 The application uses a secure file upload flow:
